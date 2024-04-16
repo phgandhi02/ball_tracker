@@ -37,13 +37,13 @@ class DetectBall(Node):
         self.declare_parameter("x_max",100)
         self.declare_parameter("y_min",0)
         self.declare_parameter("y_max",100)
-        self.declare_parameter("h_min",28)
-        self.declare_parameter("h_max",47)
-        self.declare_parameter("s_min",125)
+        self.declare_parameter("h_min",0)
+        self.declare_parameter("h_max",180)
+        self.declare_parameter("s_min",0)
         self.declare_parameter("s_max",255)
-        self.declare_parameter("v_min",68)
+        self.declare_parameter("v_min",0)
         self.declare_parameter("v_max",255)
-        self.declare_parameter("sz_min",9)
+        self.declare_parameter("sz_min",0)
         self.declare_parameter("sz_max",100)
         
         self.tuning_mode = self.get_parameter('tuning_mode').get_parameter_value().bool_value
