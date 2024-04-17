@@ -26,7 +26,7 @@ class DetectBall(Node):
         super().__init__('detect_ball')
 
         self.get_logger().info('Looking for the ball...')
-        self.image_sub = self.create_subscription(Image,"/color/image_raw",self.callback,rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value)
+        self.image_sub = self.create_subscription(Image,"/camera/color/image_raw",self.callback,rclpy.qos.QoSPresetProfiles.SENSOR_DATA.value)
         self.image_out_pub = self.create_publisher(Image, "/image_out", 1)
         self.image_tuning_pub = self.create_publisher(Image, "/image_tuning", 1)
         self.ball_pub  = self.create_publisher(Point,"/detected_ball",1)
