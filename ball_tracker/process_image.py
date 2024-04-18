@@ -6,6 +6,7 @@ import numpy as np;
 
 
 def find_circles(image, tuning_params):
+    prevCircle = None
     dist = lambda x1, y1, x2, y2: (x1-x2)**2+(y1-y2)**2
     blur = 17
 
