@@ -6,8 +6,8 @@ import numpy as np;
 
 
 def find_circles(image, tuning_params):
-    dist = lambda x1, y1, x2, y2: (x1-x2)**2+(y1-y2)**2
-    blur = 17
+
+    blur = 5
 
     x_min   = tuning_params["x_min"]
     x_max   = tuning_params["x_max"]
@@ -16,22 +16,34 @@ def find_circles(image, tuning_params):
     
     search_window = [x_min, y_min, x_max, y_max]
 
-    # working_image    = cv2.blur(image, (blur, blur))
-    working_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    working_image    = cv2.blur(image, (blur, blur))
+
+    #- Blur image to remove noise
+    # if blur > 0: 
+    #     image    = cv2.blur(image, (blur, blur))
+    #     #- Show result
+    #     if imshow:
+    #         cv2.imshow("Blur", image)
+    #         cv2.waitKey(0)
+        
+    #- Search window
+    if search_window is None: search_window = [0.0, 0.0, 1.0, 1.0]
+    search_window_px = convert_rect_perc_to_pixels(search_window, image)
     
+    
+    #- Convert image from BGR to HSV
+    working_image     = cv2.cvtColor(working_image, cv2.COLOR_BGR2HSV)    
+    
+    #- Apply HSV threshold
     thresh_min = (tuning_params["h_min"], tuning_params["s_min"], tuning_params["v_min"])
     thresh_max = (tuning_params["h_max"], tuning_params["s_max"], tuning_params["v_max"])
     working_image    = cv2.inRange(working_image, thresh_min, thresh_max)
 
-    working_image = cv2.GaussianBlur(working_image, (blur,blur), 0) 
 
     # Dilate and Erode
     working_image = cv2.dilate(working_image, None, iterations=2)
     working_image = cv2.erode(working_image, None, iterations=2)
     
-        #- Search window
-    if search_window is None: search_window = [0.0, 0.0, 1.0, 1.0]
-    search_window_px = convert_rect_perc_to_pixels(search_window, image)
 
     # Make a copy of the image for tuning
     tuning_image = cv2.bitwise_and(image,image,mask = working_image)
@@ -39,25 +51,44 @@ def find_circles(image, tuning_params):
     # Apply the search window
     working_image = apply_search_window(working_image, search_window)
 
-    size_min_px = 5#tuning_params['sz_min']*working_image.shape[1]/100.0
-    size_max_px = 500#tuning_params['sz_max']*working_image.shape[1]/100.0
-    circles = cv2.HoughCircles(working_image, cv2.HOUGH_GRADIENT, 1.4, 50, 
-                              param1=50, param2=25, minRadius=size_min_px, maxRadius=size_max_px)
-    
-    if circles is not None:
-        circles = np.uint16(np.around(circles))
-        chosen = None
-        for i in circles[0,:]:
-            if chosen is None: chosen = i
-            if prevCircle is not None:
-                if dist(chosen[0],chosen[1],prevCircle[0],prevCircle[1]) <= dist(i[0],i[1],prevCircle[0],prevCircle[1]):
-                    chosen = i
-        cv2.circle(image, (chosen[0],chosen[1]),1,(0,100,100),3)
-        cv2.circle(image, (chosen[0],chosen[1]), chosen[2],(255,0,255),3)
-        prevCircle = chosen
-        keypoints = chosen
+    # Invert the image to suit the blob detector
+    working_image = 255-working_image
 
-    # keypoints = [k for k in keypoints if k.size > size_min_px and k.size < size_max_px]
+
+
+    # Set up the SimpleBlobdetector with default parameters.
+    params = cv2.SimpleBlobDetector_Params()
+        
+    # Change thresholds
+    params.minThreshold = 0
+    params.maxThreshold = 100
+        
+    # Filter by Area.
+    params.filterByArea = True
+    params.minArea = 30
+    params.maxArea = 20000
+        
+    # Filter by Circularity
+    params.filterByCircularity = True
+    params.minCircularity = 0.1
+        
+    # Filter by Convexity
+    params.filterByConvexity = True
+    params.minConvexity = 0.5
+        
+    # Filter by Inertia
+    params.filterByInertia =True
+    params.minInertiaRatio = 0.5
+
+    detector = cv2.SimpleBlobDetector_create(params)
+
+    # Run detection!
+    keypoints = detector.detect(working_image)
+
+    size_min_px = tuning_params['sz_min']*working_image.shape[1]/100.0
+    size_max_px = tuning_params['sz_max']*working_image.shape[1]/100.0
+
+    keypoints = [k for k in keypoints if k.size > size_min_px and k.size < size_max_px]
 
     
     # Set up main output image
@@ -67,6 +98,7 @@ def find_circles(image, tuning_params):
     out_image = draw_window2(out_image, search_window_px)
 
     # Set up tuning output image
+    
     tuning_image = cv2.drawKeypoints(tuning_image, keypoints, np.array([]), line_color, cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     # tuning_image = draw_window(tuning_image, search_window)
     # cv2.rectangle(image,(x_min_px,y_min_px),(x_max_px,y_max_px),color,line)
