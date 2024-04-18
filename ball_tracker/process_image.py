@@ -57,7 +57,7 @@ def find_circles(image, tuning_params):
         prevCircle = chosen
         keypoints = chosen
     else:
-        keypoints = (0,0,0)
+        keypoints = np.array([0,0,0])
 
     # keypoints = [k for k in keypoints if k.size > size_min_px and k.size < size_max_px]
 
