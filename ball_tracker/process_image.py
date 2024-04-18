@@ -56,6 +56,8 @@ def find_circles(image, tuning_params):
         cv2.circle(image, (chosen[0],chosen[1]), chosen[2],(255,0,255),3)
         prevCircle = chosen
         keypoints = chosen
+    else:
+        keypoints = (0,0,0)
 
     # keypoints = [k for k in keypoints if k.size > size_min_px and k.size < size_max_px]
 
