@@ -51,6 +51,7 @@ class FollowBall(Node):
         self.target_val = 0.0
         self.target_dist = 0.0
         self.lastrcvtime = time.time() - 10000
+        self.timer2rcv_ball = 0
 
     def timer_callback(self):
         msg = Twist()
@@ -60,6 +61,10 @@ class FollowBall(Node):
             if (self.target_dist < self.max_size_thresh):
                 msg.linear.x = self.forward_chase_speed
             msg.angular.z = -self.angular_chase_multiplier*self.target_val
+        elif (self.target_dist <= .22):
+            timer_start = time.time()
+            while timer_start + 3600 > time.time():
+                msg.linear.x = self.forward_chase_speed
         else:
             self.get_logger().info('Target lost')
             msg.angular.z = self.search_angular_speed
