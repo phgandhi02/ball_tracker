@@ -48,16 +48,17 @@ def find_circles(image, tuning_params):
         circles = np.uint16(np.around(circles))
         chosen = None
         for i in circles[0,:]:
-            if chosen is None: chosen = i
+            if chosen is None:
+                chosen = i
             if prevCircle is not None:
-                if dist(chosen[0],chosen[1],prevCircle[0],prevCircle[1]) <= dist(i[0],i[1],prevCircle[0],prevCircle[1]):
+                if dist(chosen[0], chosen[1], prevCircle[0], prevCircle[1]) <= dist(i[0], i[1], prevCircle[0], prevCircle[1]):
                     chosen = i
-        cv2.circle(image, (chosen[0],chosen[1]),1,(0,100,100),3)
-        cv2.circle(image, (chosen[0],chosen[1]), chosen[2],(255,0,255),3)
+        cv2.circle(image, (chosen[0], chosen[1]), 1, (0, 100, 100), 3)
+        cv2.circle(image, (chosen[0], chosen[1]), chosen[2], (255, 0, 255), 3)
         prevCircle = chosen
-        keypoints = chosen
+        keypoints = [cv2.KeyPoint(chosen[0], chosen[1], chosen[2])]  # Convert chosen circle to a KeyPoint list
     else:
-        keypoints = np.array([0,0,0])
+        keypoints = []  # Empty list when no circles are found
 
     # keypoints = [k for k in keypoints if k.size > size_min_px and k.size < size_max_px]
 
